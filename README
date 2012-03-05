@@ -10,3 +10,9 @@ feeds; and Tomas Styblo's templating engine to output static files in any
 format you can dream up.
 
 Keywords: feed, blog, aggregator, RSS, RDF, Atom, OPML, Python
+
+
+NOTE ON AUTHORSHIP:
+------------------
+
+This project is not my own and has little modification on my part, please refer to the LICENCE file on this repo or go to planetplanet.org, the project's website.
