@@ -35,7 +35,7 @@ import time
 import dbhash
 import re
 
-try: 
+try:
     from xml.sax.saxutils import escape
 except:
     def escape(data):
@@ -523,6 +523,7 @@ class Channel(cache.CachedInfo):
         self.filter = None
         self.exclude = None
         self.next_order = "0"
+        self.relevant_tags = None
         self.cache_read()
         self.cache_read_entries()
 
@@ -538,6 +539,9 @@ class Channel(cache.CachedInfo):
     def get_item(self, id_):
         """Return the item from the channel."""
         return self._items[id_]
+
+    def tags(self):
+        return  self.relevant_tags.lower().split(",")
 
     # Special methods
     __contains__ = has_item
@@ -750,15 +754,26 @@ class Channel(cache.CachedInfo):
                 log.error("Unable to find or generate id, entry ignored")
                 continue
 
+            # Ignore posts based on tag filter if specified
+            include_entry = False
+            if self.relevant_tags and entry.has_key("tags"):
+                for t in entry["tags"]:
+                    if t['term'].lower() in self.tags():
+                        include_entry = True
+            elif not self.relevant_tags:
+                include_entry = True
+
             # Create the item if necessary and update
-            if self.has_item(entry_id):
-                item = self._items[entry_id]
-            else:
-                item = NewsItem(self, entry_id)
-                self._items[entry_id] = item
-                new_items.append(item)
-            item.update(entry)
-            feed_items.append(entry_id)
+            if include_entry:
+                if self.has_item(entry_id):
+                    item = self._items[entry_id]
+                else:
+                    item = NewsItem(self, entry_id)
+                    self._items[entry_id] = item
+                    new_items.append(item)
+
+                item.update(entry)
+                feed_items.append(entry_id)
 
             # Hide excess items the first time through
             if self.last_updated is None  and self._planet.new_feed_items \
@@ -791,6 +806,7 @@ class Channel(cache.CachedInfo):
                 return self.get_as_string(key)
 
         return ""
+
 
 class NewsItem(cache.CachedInfo):
     """An item of news.
